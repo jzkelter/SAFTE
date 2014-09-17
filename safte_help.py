@@ -92,4 +92,59 @@ def set_circadian_peaks(to_sleep_time, wake_time):
 	return {'p':p, 'p2': p2}
 
 
+def SAFTE(num_days, to_sleep_time, wake_time):
+	"""outputs SAFTE model for the given number of days with the given sleep and wake times."""
+	#set start time and initial reservoir
+	start_t = int(60 * (wake_time - 3)) #assume zero sleep debt starting at 
+	Rt = 2880 - ( .85 * (60 * wake_time - start_t))#initial reservoir set so that it will be full on wake
+
+	#Constants
+	Rc = 2880  #reservoir capacity (this will be variable later)
+	ta = 0
+	SI_inertia = 1
+	end_t = int(num_days * 24 * 60 + start_t )
+	I = 0
+
+	#set circadian peaks
+	circadian_peaks = set_circadian_peaks(to_sleep_time, wake_time) #get circadian peaks
+
+	print "circadian peak: ", circadian_peaks['p']
+
+	#get the minutes and hours of the range
+	minutes_in_day = range( start_t , end_t)
+	hours_in_day = [m / 60.0 for m in minutes_in_day]
+	is_asleep = set_sleep_schedule(minutes_in_day, [to_sleep_time, wake_time])
+
+
+	#initialize arrays
+	R_array = []
+	E_array = []
+	C_array = []
+
+	#fill arrays
+	for m in minutes_in_day:
+		sleeping = is_asleep[m - start_t ]
+		Rt += update_res(sleeping, Rt, Rc, m, circadian_peaks)
+		#print "T: ", (m/60.0), "   Rt: ", Rt
+		if sleeping:
+			Rc = update_res_capacity(Rt,Rc,m)
+
+		R_array.append(100* Rt/Rc )
+
+		C_array.append( 100 + Ct_adjusted(m,Rt,Rc,circadian_peaks))
+
+		#for inertia term:
+		if not sleeping and is_asleep[m - start_t - 1]: #if just awoke, initialize intertia stuff
+			SI_inertia = sleep_intensity(Rc,Rt,m,circadian_peaks)
+			ta = 0
+		ta = ta + (ta<120)
+		if ta < 120:
+			I = inertia(ta,SI_inertia)
+		else:
+			I = 0
+
+		E = 100 * (Rt / Rc) + Ct_adjusted(m,Rt,Rc,circadian_peaks) + I
+		E_array.append(E)
+
+	return hours_in_day, E_array 
 
