@@ -178,9 +178,8 @@ def SAFTE_1(sleep_times, params):
 	end_t = int(start_t + 24 * 60)  # end time is a day after start time
 	Rt = params['Rt']  # initialize the reservoir
 	Rc = params['Rc']  #initial reservoir capacity (this )
-
+	ta = params['ta']  # time since awakening (used to calculate sleep intertia)
 	#Variables
-	ta = 0  # time since awakening (used to calculate sleep intertia)
 	SI= params['SI']  # sleep intensity (this changes as reservoir changes, and also effects inertial)
 	I = params['I']  # initial sleep inertia is zero
 
@@ -211,10 +210,12 @@ def SAFTE_1(sleep_times, params):
 
 		C_array.append( 100 + Ct_adjusted(m,Rt,Rc,circadian_peaks))
 
-		#for inertia term:
+		#if just woke up, reset inertia term
 		if not sleeping and is_asleep[m - start_t - 1]: #if just awoke, initialize intertia stuff
 			SI = sleep_intensity(Rc,Rt,m,circadian_peaks)
 			ta = 0
+
+		#adjust interia term
 		ta = ta + (ta<120)
 		if ta < 120:
 			I = inertia(ta,SI)
@@ -229,6 +230,7 @@ def SAFTE_1(sleep_times, params):
     'Rc': Rc,
     'SI': SI,
     'I': I,
+    'ta':ta
     }
 	return hours_in_day, E_array, parameters
 

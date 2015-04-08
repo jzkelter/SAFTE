@@ -17,6 +17,7 @@ def repeat_safte_1(sleep_times):
     'Rc': 2880,
     'SI': 1,
     'I': 0,
+    'ta':0
     }
 
 
@@ -43,9 +44,8 @@ def safte_with_variable_sleep_schedule(sleep_times):
 
 
 
-sleep_times = [[23,7.0],[4,5],[2,8],[2,8],[23,9],[23,10]]
-#sleep_times = [[23,7.0]]
-
+# sleep_times = [[23.0,7.0],[0,7.0],[0,7.0],[1,7.0]]
+sleep_times = [[.13,9],[22.5,5.2],[.25,7.75],[22.66,7.75],[22.5,5.2]]
 
 # get the hours in day and the effectiveness
 hours_in_day, E_array = repeat_safte_1(sleep_times)  # repeating SAFTE_1
@@ -60,7 +60,7 @@ plt.ylabel("alertness")
 xticks = range(int(hours_in_day_2[0]), int(hours_in_day_2[-1]))
 #xtick_labels =[]
 xtick_labels = [t % 24 for t in xticks]
-plt.xticks(xticks,xtick_labels)
+#plt.xticks(xticks,xtick_labels)
 
 #plt.legend(['repeat_safte_1', "safte_with_variable_sleep_schedule"], loc='best')
 plt.show()
