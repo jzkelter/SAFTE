@@ -1,6 +1,6 @@
 import math
 from math import pi
-
+import basic_math as bm
 
 #circadian component
 def Ct(T, peaks):
@@ -25,7 +25,7 @@ def Ct_adjusted(m,Rt,Rc, peaks):
 def update_res(is_asleep, Rt, Rc, minute, peaks):
 
 	if not is_asleep:
-		K = .5  #the paper uses .5, assume need of 10hrs use.54
+		K = .50  #the paper uses .5, assume need of 10hrs use.54
 		return (- K )
 	else:
 		if Rt < 2880:
@@ -34,7 +34,7 @@ def update_res(is_asleep, Rt, Rc, minute, peaks):
 			return 0 
 
 def sleep_intensity(Rc, Rt, minute,peaks):
-	f = 0.0026564  #from the paper  # f = 0.00261  #trying new constant, this should be for a sleep need of about 9 hours
+	f = 0.0026564  #from the paper 0.0026564 # trying new constant, this should be for a sleep need of about 9 hours, f = 0.00261  
 	a = 0.55
 	T = minute / 60.0
 	SI = (-a) * Ct(T,peaks) + f * (Rc - Rt)
@@ -66,6 +66,9 @@ def inertia(ta,SI):
 
 
 def set_1_night_sleep_schedule(time_in_minutes, sleep_hours):
+	if sleep_hours[0] < 0:
+		sleep_hours[0] +=24
+		
 	sleep_start = sleep_hours[0] * 60
 	sleep_end = sleep_hours[1] * 60
 	minutes_in_day = 24 * 60
@@ -103,8 +106,8 @@ def set_circadian_peaks(to_sleep_time, wake_time):
 		to_sleep_time -= 24  # subtract 24 to make the to sleep time "negative" i.e. 11pm becomes -1am
 
 	duration = wake_time - to_sleep_time
-	Tmin = to_sleep_time + duration / 2 + 1.5
-	p = Tmin + 14.5
+	Tmin = to_sleep_time + duration / 2 + 1
+	p = Tmin + 14 
 	p2 = 3
 
 	return {'p':p, 'p2': p2}
@@ -235,6 +238,32 @@ def SAFTE_1(sleep_times, params):
 	return hours_in_day, E_array, parameters
 
 
+def repeat_safte_1(sleep_times):
+	"""Runs Safte_1 for multiple nights and outputs the results"""
+    #parameters to input: Rt, Rc, SI, I 
+	start_t = 60 * 4  # start at 4 am when most people are asleep
+
+ 	params = {
+	'Rt': 2880 - ( .85 * (60 * sleep_times[0][1] - start_t)),
+	'Rc': 2880,
+    'SI': 1,
+    'I': 0,
+    'ta':0
+    }
+
+
+   	final_E_array = []
+   	final_hours_in_day = []
+
+   	i = 0  # counter variable
+   	for s in sleep_times:
+   	    hours_in_day, E_array, params = SAFTE_1(s, params)
+   	    final_E_array += E_array
+   	    final_hours_in_day += [h + (24 * i) for h in hours_in_day]
+   	    i += 1
+
+   	return final_hours_in_day, final_E_array
+
 def SAFTE_mult(sleep_times):
 	#TO DO: update circadian peaks
 	"""outputs SAFTE model for multiple days give sleep times."""
@@ -252,8 +281,8 @@ def SAFTE_mult(sleep_times):
 	I = 0
 
 	#set circadian peaks
-	circadian_peaks = set_circadian_peaks(sleep_times[0][0], sleep_times[0][1]) #get circadian peaks
-
+	ave_sleep_times = bm.mean_sleep_times(sleep_times)
+	circadian_peaks = set_circadian_peaks(ave_sleep_times[0], ave_sleep_times[1]) #get circadian peaks
 
 	#get minutes/hours in day and sleep schedule
 	minutes_in_day = range( start_t , end_t)
@@ -295,3 +324,7 @@ def SAFTE_mult(sleep_times):
 
 
 	return hours_in_day, E_array
+
+
+
+

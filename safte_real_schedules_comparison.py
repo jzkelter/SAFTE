@@ -26,7 +26,6 @@ def repeat_safte_1(sleep_times):
 
     i = 0  # counter variable
     for s in sleep_times:
-        print "i: ", i, ". init_reservoir: ", params['Rc']
         hours_in_day, E_array, params = SAFTE_1(s, params)
         final_E_array += E_array
         final_hours_in_day += [h + (24 * i) for h in hours_in_day]
@@ -43,9 +42,13 @@ def safte_with_variable_sleep_schedule(sleep_times):
 
 
 
-
+#
 # sleep_times = [[23.0,7.0],[0,7.0],[0,7.0],[1,7.0]]
-sleep_times = [[.13,9],[22.5,5.2],[.25,7.75],[22.66,7.75],[22.5,5.2]]
+# sleep_times = [[.13,9],[22.5,5.2],[.25,7.75],[22.66,7.75],[22.5,5.2]]
+# sleep_times = [[1.28,8.98],[23.4,5.33],[23.71,6.01],[22.15,5.25],[21.95,6.86]]
+#sleep_times = [[1.28,8.98],[23.4,5.33], [23.4,5.33], [23.4,5.33]] * 2
+
+sleep_times = [[0,6]]
 
 # get the hours in day and the effectiveness
 hours_in_day, E_array = repeat_safte_1(sleep_times)  # repeating SAFTE_1
